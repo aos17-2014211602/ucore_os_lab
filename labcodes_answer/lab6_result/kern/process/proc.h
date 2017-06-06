@@ -62,7 +62,11 @@ struct proc_struct {
     list_entry_t run_link;                      // the entry linked in run queue
     int time_slice;                             // time slice for occupying the CPU
     skew_heap_entry_t lab6_run_pool;            // FOR LAB6 ONLY: the entry in the run pool
-    uint32_t lab6_stride;                       // FOR LAB6 ONLY: the current stride of the process 
+    uint32_t bvt_avt;                           // FOR bvt: actual virtual time
+    uint32_t bvt_evt;                           // FOR bvt: effective virtual time
+    uint32_t bvt_warp;                          // FOR bvt: warp
+    uint32_t bvt_warp_timer;                    // FOR bvt: 
+    uint32_t bvt_unwarp_timer;                  // FOR bvt:
     uint32_t lab6_priority;                     // FOR LAB6 ONLY: the priority of process, set by lab6_set_priority(uint32_t)
 };
 

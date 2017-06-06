@@ -4,12 +4,13 @@
 #include <assert.h>
 #include <default_sched.h>
 
-#define USE_SKEW_HEAP 1
+#define USE_SKEW_HEAP 0
 
 /* You should define the BigStride constant here*/
 /* LAB6: YOUR CODE */
-#define BIG_STRIDE    0x7FFFFFFF /* ??? */
-
+//#define BIG_STRIDE    0x7FFFFFFF /* ??? */
+#define WARPL    10
+#define WARPU    20
 /* The compare function for two skew_heap_node_t's and the
  * corresponding procs*/
 static int
@@ -17,7 +18,7 @@ proc_stride_comp_f(void *a, void *b)
 {
      struct proc_struct *p = le2proc(a, lab6_run_pool);
      struct proc_struct *q = le2proc(b, lab6_run_pool);
-     int32_t c = p->lab6_stride - q->lab6_stride;
+     int32_t c = p->bvt_evt - q->bvt_evt;
      if (c > 0) return 1;
      else if (c == 0) return 0;
      else return -1;
@@ -122,14 +123,14 @@ stride_pick_next(struct run_queue *rq) {
      while (le != &rq->run_list)
      {
           struct proc_struct *q = le2proc(le, run_link);
-          if ((int32_t)(p->lab6_stride - q->lab6_stride) > 0)
+          if ((int32_t)(p->bvt_evt - q->bvt_evt) > 0 && q->bvt_warp_timer < WARPL)
                p = q;
           le = list_next(le);
      }
 #endif
-     if (p->lab6_priority == 0)
-          p->lab6_stride += BIG_STRIDE;
-     else p->lab6_stride += BIG_STRIDE / p->lab6_priority;
+     p->bvt_avt += 1.0 / p->lab6_priority;
+     p->bvt_evt = p->bvt_avt - p->bvt_warp;
+     if(p->bvt_warp) p->bvt_unwarp_timer = 0;
      return p;
 }
 
@@ -146,6 +147,22 @@ stride_proc_tick(struct run_queue *rq, struct proc_struct *proc) {
      /* LAB6: YOUR CODE */
      if (proc->time_slice > 0) {
           proc->time_slice --;
+          if(!proc->bvt_warp){proc->bvt_warp_timer ++ ;}
+          list_entry_t *le = list_next(&(rq->run_list));
+
+         if (le == &rq->run_list)
+         {}
+         
+         //struct proc_struct *p = le2proc(le, run_link);
+         le = list_next(le);
+         while (le != &rq->run_list)
+         {
+              struct proc_struct *q = le2proc(le, run_link);
+              if (!q->bvt_warp)
+                   q->bvt_unwarp_timer ++;
+              if (q->bvt_unwarp_timer > WARPU)
+                  q->bvt_warp_timer = 0;
+         }
      }
      if (proc->time_slice == 0) {
           proc->need_resched = 1;
