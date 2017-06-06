@@ -147,7 +147,7 @@ bvt_proc_tick(struct run_queue *rq, struct proc_struct *proc) {
      /* LAB6: YOUR CODE */
      if (proc->time_slice > 0) {
           proc->time_slice --;
-          if(!proc->bvt_warp){proc->bvt_warp_timer ++ ;}
+          if(proc->bvt_warp){proc->bvt_warp_timer ++ ;}
           list_entry_t *le = list_next(&(rq->run_list));
 
          if (le == &rq->run_list)
@@ -158,7 +158,7 @@ bvt_proc_tick(struct run_queue *rq, struct proc_struct *proc) {
          while (le != &rq->run_list)
          {
               struct proc_struct *q = le2proc(le, run_link);
-              if (!q->bvt_warp)
+              if (q->bvt_warp)
                    q->bvt_unwarp_timer ++;
               if (q->bvt_unwarp_timer > WARPU)
                   q->bvt_warp_timer = 0;
